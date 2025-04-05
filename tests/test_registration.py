@@ -1,6 +1,8 @@
 import pytest
 import sqlite3
 import os
+import io
+import sys
 from registration.registration import create_db, add_user, authenticate_user, display_users
 
 @pytest.fixture(scope="module")
@@ -44,3 +46,41 @@ def test_add_new_user(setup_database, connection):
 Тест аутентификации пользователя с неправильным паролем.
 Тест отображения списка пользователей.
 """
+
+def test_inv_password(setup_database, connection):
+    '''Тест аутентификации пользователя с неправильным паролем.'''
+    username = 'testuser'
+    password = 'password12'
+    assert False == authenticate_user(username, password)
+
+def test_inv_login(setup_database, connection):
+    '''Тест аутентификации несуществующего пользователя.'''
+    username = 'testuser22'
+    password = 'password123'
+    assert False == authenticate_user(username, password)
+
+def test_correct_aut(setup_database, connection):
+    '''Тест успешной аутентификации пользователя.'''
+    username = 'testuser'
+    password = 'password123'
+    assert True == authenticate_user(username, password)
+
+def test_exist_login(setup_database, connection):
+    '''Тест добавления пользователя с существующим логином.'''
+    username = 'testuser'
+    email = 'testuser@example.com'
+    password = 'password123'
+    assert False == add_user(username, email, password)
+
+def test_display_users(setup_database, connection):
+    '''Тест отображения списка пользователей.'''
+    captured_output = io.StringIO()          
+    sys.stdout = captured_output           
+    display_users()                        
+    sys.stdout = sys.__stdout__           
+    a = 'Логин: testuser, Электронная почта: testuser@example.com'
+    output_string = captured_output.getvalue().strip()
+    assert output_string == a
+
+
+    
